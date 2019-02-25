@@ -32,3 +32,27 @@ def alpha(i, base=0.2):
     for j in range(i):
         ar.append(l(ar[-1]))
     return ar[-1]
+
+histData = np.zeros(1260)
+synthetic = np.zeros([len(experiments),len(histData),samples])
+for e in range(len(experiments)):
+    for ID in irrigation_structures[WDs.index(all_IDs[i])]:
+        histData += np.loadtxt('./'+experiments[0]+'/Infofiles/' +  ID + '/' + ID + '_info_0.txt')[:,2]
+        for j in range(samples-1):
+            file = WDs[WDs.index(all_IDs[i])] + ' ' + ID + ' ' + experiments[e] + ' sample ' + str(j)
+            try:
+                data= np.loadtxt('./'+experiments[e] +'/Infofiles/' +  ID + '/' + ID + '_info_' + str(j+1) + '.txt')[:,2]     
+                synthetic[e,:,j]+=data
+            except:
+                empty.append(file)
+else:
+histData = np.loadtxt('./'+experiments[0]+'/Infofiles/' +  all_IDs[i] + '/' + all_IDs[i] + '_info_0.txt')[:,2]
+synthetic = np.zeros([len(experiments),len(histData),samples])
+for e in range(len(experiments)):
+    for j in range(samples-1):
+            file = all_IDs[i] + ' ' + experiments[e] + ' sample ' + str(j)
+            try:
+                data= np.loadtxt('./'+experiments[e] +'/Infofiles/' +  all_IDs[i] + '/' + all_IDs[i] + '_info_' + str(j+1) + '.txt')[:,2]     
+                synthetic[e,:,j]=data
+            except:
+                empty.append(empty)
