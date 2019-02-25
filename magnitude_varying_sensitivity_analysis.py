@@ -22,17 +22,6 @@ parameter_names_long = ['IWR demand mutliplier', 'Reservoir loss',
                         'Wet state sigma', 'Dry-to-dry state prob.', 
                         'Wet-to-wet state prob.', 'Interaction']
 
-# Percentiles for which the sensitivity analysis will be performed
-percentiles = np.arange(0,100)
-
-# Function to calculate custom transparency for legend purposes
-def alpha(i, base=0.2):
-    l = lambda x: x+base-x*base
-    ar = [l(0)]
-    for j in range(i):
-        ar.append(l(ar[-1]))
-    return ar[-1]
-
 # Read in historical data
 histData = np.loadtxt('./historical_data.txt')
 
@@ -90,3 +79,35 @@ ax.legend(loc = 'upper left')
 ax.set_ylabel('Annual shortage (af)', fontsize=12)
 ax.set_xlabel('Shortage magnitude percentile', fontsize=12)
 plt.savefig('experiment_data_range.png') 
+
+# To plot output density of experiment we need an array of percentiles
+p=np.arange(100,0,-10)
+
+# Function to calculate custom transparency for legend purposes
+def alpha(i, base=0.2):
+    l = lambda x: x+base-x*base
+    ar = [l(0)]
+    for j in range(i):
+        ar.append(l(ar[-1]))
+    return ar[-1]
+
+handles = []
+labels=[]
+fig = plt.figure()
+ax=fig.add_subplot(1,1,1)
+for i in range(len(p)):
+    ax.fill_between(P, np.min(expData_sort[:,:],1), np.percentile(expData_sort[:,:], p[i], axis=1), color='#4286f4', alpha = 0.1)
+    ax.plot(P, np.percentile(expData_sort[:,:], p[i], axis=1), linewidth=0.5, color='#4286f4', alpha = 0.3)
+    handle = matplotlib.patches.Rectangle((0,0),1,1, color='#4286f4', alpha=alpha(i, base=0.1))
+    handles.append(handle)
+    label = "{:.0f} %".format(100-p[i])
+    labels.append(label)
+ax.plot(P,hist_sort, c='black', linewidth=2, label='Historical record')
+ax.set_xlim(0,100)
+ax.legend(handles=handles, labels=labels, framealpha=1, fontsize=8, loc='upper left', title='Frequency in experiment',ncol=2)
+ax.set_xlabel('Shortage magnitude percentile', fontsize=12)
+plt.savefig('experiment_data_density.png')
+
+
+# Percentiles for which the sensitivity analysis will be performed
+percentiles = np.arange(0,100)
