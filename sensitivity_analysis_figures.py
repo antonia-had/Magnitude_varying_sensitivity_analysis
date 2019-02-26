@@ -1,12 +1,18 @@
 import numpy as np
 import matplotlib
 from matplotlib import pyplot as plt
+import pandas as pd
 
 # Number of samples in experiment
 samples = 1000
 
+# Parameter names for figure generation
+param_names=['IWRmultiplier','RESloss','TBDmultiplier','M_Imultiplier',
+             'Shoshone','ENVflows','EVAdelta','XBM_mu0','XBM_sigma0',
+             'XBM_mu1','XBM_sigma1','XBM_p00','XBM_p11']
+
 # Longform parameter names to use in figure legend
-parameter_names_long = ['IWR demand mutliplier', 'Reservoir loss', 
+parameter_names_long = ['Min','IWR demand mutliplier', 'Reservoir loss', 
                         'TBD demand multiplier', 'M&I demand multiplier', 
                         'Shoshone active', 'Env. flow senior right', 
                         'Evaporation delta', 'Dry state mu', 
@@ -100,4 +106,82 @@ ax.legend(handles=handles, labels=labels, framealpha=1, fontsize=8, loc='upper l
 ax.set_xlabel('Shortage magnitude percentile', fontsize=12)
 plt.savefig('experiment_data_density.png')
 
+# Percentiles for analysis to loop over
+percentiles = np.arange(0,100)
 
+# Estimate upper and lower bounds
+globalmax = [np.percentile(np.max(expData_sort[:,:],1),p) for p in percentiles]
+globalmin = [np.percentile(np.min(expData_sort[:,:],1),p) for p in percentiles]
+
+delta_values = pd.read_csv('./DELTA_scores.csv')
+delta_values.set_index(list(delta_values)[0],inplace=True)
+delta_values = delta_values.clip(lower=0)
+bottom_row = pd.DataFrame(data=np.array([np.zeros(100)]), index= ['Interaction'], columns=list(delta_values.columns.values))
+top_row = pd.DataFrame(data=np.array([globalmin]), index= ['Min'], columns=list(delta_values.columns.values))
+delta_values = pd.concat([top_row,delta_values.loc[:],bottom_row])
+for p in range(len(percentiles)):
+    total = np.sum(delta_values[str(percentiles[p])])-delta_values.at['Min',str(percentiles[p])]
+    if total!=0:
+        for param in param_names:
+                value = (globalmax[p]-globalmin[p])*delta_values.at[param,str(percentiles[p])]/total
+                delta_values.set_value(param,str(percentiles[p]),value)
+delta_values = delta_values.round(decimals = 2)
+delta_values_to_plot = delta_values.values.tolist()
+
+S1_values = pd.read_csv('./S1_scores.csv')
+S1_values.set_index(list(S1_values)[0],inplace=True)
+S1_values = S1_values.clip(lower=0)
+bottom_row = pd.DataFrame(data=np.array([np.zeros(100)]), index= ['Interaction'], columns=list(S1_values.columns.values))
+top_row = pd.DataFrame(data=np.array([globalmin]), index= ['Min'], columns=list(S1_values.columns.values))
+S1_values = pd.concat([top_row,S1_values.loc[:],bottom_row])
+for p in range(len(percentiles)):
+    total = np.sum(S1_values[str(percentiles[p])])-S1_values.at['Min',str(percentiles[p])]
+    if total!=0:
+        diff = 1-total
+        S1_values.set_value('Interaction',str(percentiles[p]),diff)
+        for param in param_names+['Interaction']:
+            value = (globalmax[p]-globalmin[p])*S1_values.at[param,str(percentiles[p])]/total
+            S1_values.set_value(param,str(percentiles[p]),value)
+S1_values = S1_values.round(decimals = 2)
+S1_values_to_plot = S1_values.values.tolist()
+
+R2_values = pd.read_csv('./R2_scores.csv')
+R2_values.set_index(list(R2_values)[0],inplace=True)
+R2_values = R2_values.clip(lower=0)
+bottom_row = pd.DataFrame(data=np.array([np.zeros(100)]), index= ['Interaction'], columns=list(R2_values.columns.values))
+top_row = pd.DataFrame(data=np.array([globalmin]), index= ['Min'], columns=list(R2_values.columns.values))
+R2_values = pd.concat([top_row,R2_values.ix[:],bottom_row])
+for p in range(len(percentiles)):
+    total = np.sum(R2_values[str(percentiles[p])])-R2_values.at['Min',str(percentiles[p])]
+    if total!=0:
+        value = 1-total
+        R2_values.set_value('Interaction',str(percentiles[p]),value)
+    R2_values[str(p)]=(globalmax[p]-globalmin[p])*R2_values[str(percentiles[p])]
+R2_values = R2_values.round(decimals = 2)
+R2_values_to_plot = R2_values.values.tolist()
+
+color_list = ["white", "#F18670", "#E24D3F", "#CF233E", "#681E33", "#676572", "#F3BE22", "#59DEBA", "#14015C", "#DAF8A3", "#0B7A0A", "#F8FFA2", "#578DC0", "#4E4AD8", "#F77632"]        
+
+fig, (ax1, ax2, ax3) = plt.subplots(1,3, figsize=(14.5,8))
+ax1.stackplot(percentiles, delta_values_to_plot, colors = color_list, labels=parameter_names_long)
+l1 = ax1.plot(percentiles, globalmax, color='black', linewidth=2)
+l2 = ax1.plot(percentiles, globalmin, color='black', linewidth=2)
+ax1.set_title("Delta index")
+ax1.set_xlim(0,100)
+ax2.stackplot(np.arange(0,100), S1_values_to_plot, colors = color_list, labels=parameter_names_long)
+ax2.plot(percentiles, globalmax, color='black', linewidth=2)
+ax2.plot(percentiles, globalmin, color='black', linewidth=2)
+ax2.set_title("S1")
+ax2.set_xlim(0,100)
+ax3.stackplot(np.arange(0,100), R2_values_to_plot, colors = color_list, labels=parameter_names_long)
+ax3.plot(percentiles, globalmax, color='black', linewidth=2)
+ax3.plot(percentiles, globalmin, color='black', linewidth=2)
+ax3.set_title("R^2")
+ax3.set_xlim(0,100)
+handles, labels = ax3.get_legend_handles_labels()
+ax1.set_ylabel('Annual shortage (af)', fontsize=12)
+ax2.set_xlabel('Shortage magnitude percentile', fontsize=12)
+ax1.legend((l1), ('Global ensemble',), fontsize=10, loc='upper left')
+fig.legend(handles, labels, fontsize=10, loc='lower center',ncol = 5)
+plt.subplots_adjust(bottom=0.2)
+fig.savefig('./experiment_sensitivity_curves.png')
