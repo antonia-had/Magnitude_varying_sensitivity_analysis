@@ -1,0 +1,8 @@
+IWRmultiplier 0.5 1.5
+RESloss 0.8 1.0
+TBDmultiplier 0.5 1.5
+M_Imultiplier 0.5 1.5
+ShoshoneDMND 0.0 1.0
+ENVflows 0.0 1.0
+EVAdelta -0.5 1.0
+XBM_multiplier 0.5 1.5
