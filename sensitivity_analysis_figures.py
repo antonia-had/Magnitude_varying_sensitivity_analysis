@@ -1,17 +1,9 @@
 import numpy as np
 import matplotlib
 from matplotlib import pyplot as plt
-import os
-from scipy import stats
-import pandas as pd
 
 # Number of samples in experiment
-samples = 1000 
-
-# Parameter names to use in sensitivity analysis
-param_names=['IWRmultiplier','RESloss','TBDmultiplier','M_Imultiplier',
-             'Shoshone','ENVflows','EVAdelta','XBM_mu0','XBM_sigma0',
-             'XBM_mu1','XBM_sigma1','XBM_p00','XBM_p11']
+samples = 1000
 
 # Longform parameter names to use in figure legend
 parameter_names_long = ['IWR demand mutliplier', 'Reservoir loss', 
