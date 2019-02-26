@@ -42,12 +42,10 @@ S1_conf = pd.DataFrame(np.zeros((params_no, len(percentiles))), columns = percen
 R2_scores = pd.DataFrame(np.zeros((params_no, len(percentiles))), columns = percentiles)
 DELTA.index=DELTA_conf.index=S1.index=S1_conf.index = R2_scores.index = param_names
 
-# Read in historical data
-histData = np.loadtxt('./historical_data.txt')
 # Read in experiment data
 expData = np.loadtxt('./experiment_data.txt')
 
-# Identify droughts at percentiles
+# Identify magnitude at each percentiles
 syn_magnitude = np.zeros([len(percentiles),len(LHsamples[:,0])])
 for j in range(len(LHsamples[:,0])):
     syn_magnitude[:,j]=[np.percentile(expData[:,j], i) for i in percentiles]

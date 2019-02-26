@@ -101,5 +101,3 @@ ax.set_xlabel('Shortage magnitude percentile', fontsize=12)
 plt.savefig('experiment_data_density.png')
 
 
-# Percentiles for which the sensitivity analysis will be performed
-percentiles = np.arange(0,100)
