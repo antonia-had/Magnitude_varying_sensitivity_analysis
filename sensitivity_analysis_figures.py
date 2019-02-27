@@ -5,7 +5,7 @@ import pandas as pd
 
 # Number of samples in experiment
 LHsamples = np.loadtxt('./LHsamples.txt') 
-samples = len(LHsamples[:,0])
+samples = len(LHsamples[:,0])-1
 
 # Parameter names for figure generation
 param_names=['IWRmultiplier','RESloss','TBDmultiplier','M_Imultiplier',
@@ -141,7 +141,7 @@ for p in range(len(percentiles)):
         diff = 1-total
         S1_values.set_value('Interaction',str(percentiles[p]),diff)
         for param in param_names+['Interaction']:
-            value = (globalmax[p]-globalmin[p])*S1_values.at[param,str(percentiles[p])]/total
+            value = (globalmax[p]-globalmin[p])*S1_values.at[param,str(percentiles[p])]
             S1_values.set_value(param,str(percentiles[p]),value)
 S1_values = S1_values.round(decimals = 2)
 S1_values_to_plot = S1_values.values.tolist()
@@ -151,13 +151,15 @@ R2_values.set_index(list(R2_values)[0],inplace=True)
 R2_values = R2_values.clip(lower=0)
 bottom_row = pd.DataFrame(data=np.array([np.zeros(100)]), index= ['Interaction'], columns=list(R2_values.columns.values))
 top_row = pd.DataFrame(data=np.array([globalmin]), index= ['Min'], columns=list(R2_values.columns.values))
-R2_values = pd.concat([top_row,R2_values.ix[:],bottom_row])
+R2_values = pd.concat([top_row,R2_values.loc[:],bottom_row])
 for p in range(len(percentiles)):
     total = np.sum(R2_values[str(percentiles[p])])-R2_values.at['Min',str(percentiles[p])]
     if total!=0:
-        value = 1-total
-        R2_values.set_value('Interaction',str(percentiles[p]),value)
-    R2_values[str(p)]=(globalmax[p]-globalmin[p])*R2_values[str(percentiles[p])]
+        diff = 1-total
+        R2_values.set_value('Interaction',str(percentiles[p]),diff)
+        for param in param_names+['Interaction']:
+            value = (globalmax[p]-globalmin[p])*R2_values.at[param,str(percentiles[p])]
+            R2_values.set_value(param,str(percentiles[p]),value)
 R2_values = R2_values.round(decimals = 2)
 R2_values_to_plot = R2_values.values.tolist()
 
@@ -183,6 +185,6 @@ handles, labels = ax3.get_legend_handles_labels()
 ax1.set_ylabel('Annual shortage (af)', fontsize=12)
 ax2.set_xlabel('Shortage magnitude percentile', fontsize=12)
 ax1.legend((l1), ('Global ensemble',), fontsize=10, loc='upper left')
-fig.legend(handles, labels, fontsize=10, loc='lower center',ncol = 5)
+fig.legend(handles[1:], labels[1:], fontsize=10, loc='lower center',ncol = 5)
 plt.subplots_adjust(bottom=0.2)
 fig.savefig('./experiment_sensitivity_curves.png')
