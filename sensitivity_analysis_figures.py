@@ -5,7 +5,7 @@ import pandas as pd
 
 # Number of samples in experiment
 LHsamples = np.loadtxt('./LHsamples.txt') 
-samples = len(LHsamples[1,:])
+samples = len(LHsamples[:,0])
 
 # Parameter names for figure generation
 param_names=['IWRmultiplier','RESloss','TBDmultiplier','M_Imultiplier',
